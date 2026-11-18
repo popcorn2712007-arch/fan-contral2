@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ESP32 Status</title>
+<script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+<style>
+  body{font-family:sans-serif;max-width:420px;margin:24px auto;padding:0 16px}
+  .card{border:1px solid #ccc;border-radius:12px;padding:16px;margin-bottom:12px}
+  .row{display:flex;justify-content:space-between;padding:6px 0}
+  button{width:100%;padding:14px;font-size:16px;border:0;border-radius:10px;background:#2b7de9;color:#fff}
+</style>
+</head>
+<body>
+<h2>สถานะ ESP32</h2>
+<div class="card">
+  <div class="row"><span>การเชื่อมต่อ</span><span id="conn">กำลังเชื่อมต่อ...</span></div>
+  <div class="row"><span>สัญญาณ</span><span id="rssi">-</span></div>
+  <div class="row"><span>ทำงานมาแล้ว</span><span id="up">-</span></div>
+  <div class="row"><span>ไฟ LED</span><span id="led">-</span></div>
+</div>
+<button onclick="client.publish(CMD,'toggle')">เปิด/ปิดไฟ LED</button>
+
+<script>
+const STATUS = 'tanwela-demo-8421/status';
+const CMD    = 'tanwela-demo-8421/cmd';
+
+const client = mqtt.connect('wss://broker.emqx.io:8084/mqtt');
+
+client.on('connect', () => {
+  conn.textContent = 'เชื่อมต่อแล้ว';
+  client.subscribe(STATUS);
+});
+client.on('close', () => conn.textContent = 'ขาดการเชื่อมต่อ');
+client.on('message', (t, m) => {
+  const d = JSON.parse(m.toString());
+  rssi.textContent = d.rssi + ' dBm';
+  up.textContent = d.uptime + ' วินาที';
+  led.textContent = d.led ? 'ติด' : 'ดับ';
+});
+</script>
+</body>
+</html>
